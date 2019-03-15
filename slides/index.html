@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Title</title>
+    <meta charset="utf-8">
+    <style>
+      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+      body { font-family: 'Droid Serif'; }
+      h1, h2, h3 {
+        font-family: 'Yanone Kaffeesatz';
+        font-weight: normal;
+      }
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+
+class: center, middle
+
+# Making and HTTP Server in Fennel! (and other thoughts about Fennel)
+* Fennel Conf 2019
+
+---
+
+# Introduction
+* me.jpg
+* I'm Calvin (bakpakin)
+* I like programming, especially languages and compilers.
+* Computer Engineering Student at Boston University
+* I wrote the original version of Fennel (called fnl)
+* About 1000 lines of lua in 2016, has grown since
+
+---
+
+# My Fennel Experience
+* I've spent a lot of time hacking on the compiler, a bit less time actually using it
+* So I thought I would start "learning" Fennel for this talk.
+
+---
+
+# So lets make an HTTP server
+* Fennel runs on Lua, Lua has lots of HTTP server libraries
+* OpenResty, Luvit, Xavante, moonmint, Lapis, etc.
+* We could simply use the Lua bindings directly
+
+---
+
+# ... But will they run on an ESP32?
+* nice-pic.png
+* 512 kB RAM
+* 4M flash
+* Doesn't run linux, can use FreeRTOS
+* Bluetooth + Wifi peripherals
+* ~$10 for a dev board
+* System specific APIs for networking
+
+---
+
+# Use NodeMCU + Fennel for the board
+* NodeMCU runs Lua, so it runs Fennel
+* Use the Espressif libraries for C bindings
+* Networking stack provided
+
+---
+
+# But the http package says (for client use only)
+* nodemcu-doc-screenshot.png :(
+* "Quote about not using nodeMCU for http server here."
+* I do what I want.
+
+---
+
+# So I wrote my own HTTP parser. HTTP is pretty simple
+* Line/text based protocol
+* We don't need to handle the whole protocol - only what our server will handle
+
+---
+
+# NodeMCU net module
+* Provides a way to listen on socket, run callback when packets arrive
+* idea.png
+* packets callback -> packet iterator
+* packet iterator -> line iterator
+* line-itertor -> http-parser
+
+---
+
+# The packet callback -> packet iterator
+* Use coroutine.yield
+* !!Show Code!!
+
+---
+
+# Packet iterator -> Line iterator
+* In Clojure, we have lazy sequences, higher order functions like map, and transducers.
+* In Fennel/Lua, we can use iterators. Our combinators can take in an iterator and return a new iterator
+* CODE
+
+---
+
+# Line iterator -> HTTP parser
+* We can now iterate over lines and be really stupid about parsing HTTP
+* Code looks like blocking code, but isn't
+* Use Lua Patterns for parsing HTTP syntax line by line.
+* CODE
+
+---
+
+# Ring-like interface
+* Our http parser creates a `req` table that we pass to a handler.
+* Handler needs to return a response.
+* CODE
+
+---
+
+# Response renderer
+* Covert response object to HTTP response
+* send the response over HTTP
+* CODE
+
+---
+
+# That's pretty much it
+* We have an HTTP server built on a raw tcp/ip stack
+* We could swap out the original packet iterator for whatever we wanted (HTTP from pipe, netcat).
+* Code is small enough to work on the ESP32/NodeMCU easily.
+
+---
+
+# Making it better
+* Some duplication, lua style things
+* Duh, write some macros (I want a `loop` macro)
+
+---
+
+# So why make a tiny HTTP server of software?
+* Prototyping
+* Illustration
+* Learning
+* Starting point for future projects.
+* Fun!
+* It's probably good enough, and all code is a liability
+
+---
+
+# "smol software"
+* Distill something to it's roots
+* You won't get everything right in the first take, maybe not in the first year either.
+* When performance is not paramount, code can become A LOT shorter
+* Other people can play with the code
+* Simple > correct
+* You spend more time thinking, less time writing code
+
+---
+
+# These are not new ideas
+* Lisp, Smalltalk, etc.
+* Suckless software
+* Clojure (simple made easy)
+
+---
+
+# Simple software can be reused in unexpected ways
+* Modify server to pipe from netcat
+* Reuse line-iter function
+* I use this technique in the Fennel parser
+
+---
+
+# For software toys, sometimes the idea is more important than the code
+* npm micro modules -> github gists
+* A lot of the code in Fennel has been rewritten (more than once!)
+* It would have been a lot harder to rewrite if the design was less flexible
+
+---
+
+# Is Fennel still that small?
+* Not totally, but we have some benefits of "smol software"
+* One file, works with lots of different Lua distributions
+* No build step for the compiler
+* It's still fun to hack on!
+
+---
+
+# How can the Fennel compiler be improved?
+* Distill some of the ideas in the compiler
+* Simplify, simplify, simplify!
+* Real usage and feedback
+* Complexity = LOC * (Difficulty to use)
+
+---
+
+# Thanks!
+Questions?
+
+    </textarea>
+    <script src="https://remarkjs.com/downloads/remark-latest.min.js">
+    </script>
+    <script>
+      var slideshow = remark.create();
+    </script>
+  </body>
+</html>

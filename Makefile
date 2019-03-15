@@ -16,4 +16,7 @@ terminal:
 clean:
 	rm $(LUA_OBJECTS)
 
-.PHONY: upload terminal clean default
+slideshow:
+	cd slides; python -m http.server
+
+.PHONY: upload terminal clean default slideshow
