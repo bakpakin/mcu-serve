@@ -103,7 +103,7 @@ class: middle
 
 # Some problems
 
-In the NodeMCU documenation, `http` module says "for client use only".
+In the NodeMCU documentation, `http` module says "for client use only".
 
 Also,
 
@@ -176,9 +176,9 @@ Our packet iterator is just `coroutine.yield`
 ---
 
 # Line iterator &rarr; HTTP parser
-* We can now iterate over lines and be really stupid about parsing HTTP
-* Code looks like blocking code, but isn't
+* We can now iterate over lines and be really straight-forward about parsing HTTP
 * Use Lua Patterns for parsing HTTP syntax line by line.
+* Finally create our request object.
 
 ---
 
@@ -186,10 +186,16 @@ Our packet iterator is just `coroutine.yield`
 
 .center.image-50[![arrows](assets/arrows.png)]
 
+* The rest of the code is pretty straight forward (rendering, sending the response, etc.)
 * approx. 100 lines of code
-* The rest of the code is pretty straight forward
-* We could swap out the original packet iterator for whatever we wanted (HTTP from pipe, netcat).
+* We could swap out the original packet iterator for whatever we wanted (HTTP from fifo, netcat).
 * Code is small enough to work on the ESP32/NodeMCU easily.
+
+---
+
+class: center middle
+
+# How is our little server useful?
 
 ---
 
@@ -217,15 +223,14 @@ Our packet iterator is just `coroutine.yield`
 # How smol is Fennel?
 * One file, no build step, no runtime, works with most common Lua implementations.
 * You can read it in an hour (a few hours?)
-* But its a big file.
-* It's still fun to hack on!
+* But it's a big file.
 
 ---
 
-# How can the Fennel compiler be improved?
+# How can Fennel be improved?
 * Simplify, simplify, simplify!
 * Real usage and feedback
-* Document the internals! We need some internal design docs to compensate for no type system.
+* Good comments and unit tests to fight complexity..
 
 ---
 

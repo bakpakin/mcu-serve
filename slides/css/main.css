@@ -55,3 +55,20 @@ pre {
 .Special { color: #ff6060; font-weight: bold; }
 .Identifier { color: #00ffff; font-weight: bold; }
 .Statement { color: #ffff00; font-weight: bold; }
+
+/* Fonts */
+@font-face {
+  font-family: 'Fira Sans';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Fira Sans Regular'), local('FiraSans-Regular'), url(assets/FiraSans-Regular.ttf) format('ttf');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'PT Serif';
+  font-style: normal;
+  font-weight: 400;
+  src: local('PT Serif'), local('PTSerif-Regular'), url(assets/PT_Serif-Web-Regular.ttf) format('ttf');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
