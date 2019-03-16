@@ -1,18 +1,21 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Making an HTTP Server - Fennel Conf 2019</title>
+    <title>A Functional HTTP Server - Fennel Conf 2019</title>
     <meta charset="utf-8">
     <link rel="stylesheet" href="css/main.css" type="text/css" charset="utf-8">
+    <link href="https://fonts.googleapis.com/css?family=Fira+Sans|PT+Serif" rel="stylesheet"> 
   </head>
   <body>
     <textarea id="source">
 
 class: center, middle
 
-# Making an HTTP Server in Fennel!
+# A Functional HTTP Server in Fennel!
 
-## Fennel Conf 2019
+### Calvin Rose (calsrose@bu.edu)
+
+Fennel Conf 2019-03-16
 
 ---
 
@@ -20,13 +23,13 @@ class: center, middle
 
 # Me
 
-I'm Calvin Rose (calsrose@bu.edu). I'm a Computer Engineering Student at 
+I'm Calvin, a Computer Engineering student at 
 Boston University, class of 2019, with an interest in
 PL design and compilers.
 
-I wrote the original version of Fennel with about 1000 lines of Lua in 2016, and it has grown since.
-
 ---
+
+class: middle
 
 # My Fennel Experience
 I've spent a lot of time hacking on the compiler, and less time using the language.
@@ -34,42 +37,84 @@ I wanted to make something new for Fennel Conf.
 
 ---
 
+class: middle
+
 # Prior Art
 * Fennel runs on Lua, Lua has lots of HTTP server libraries
 * OpenResty, Luvit, Xavante, Lwan, moonmint, Lapis, etc.
 * We could simply use the Lua bindings directly
 
+![openresty](assets/openresty.png)
+.image-256[![luvit](assets/luvit.svg)]
+.image-64[![xavante](assets/xavante.gif)]
+
 ---
+
+class: middle
 
 # Fennel + Luvit example
 
-* From the Luvit.io homepage
+Translated from Luvit.io homepage
+
+<pre id='vimCodeElement'>
+<span class="fennelRainbow_p0">(</span><span class="Special">local</span> <span class="Identifier">http</span> <span class="fennelRainbow_p1">(</span><span class="Special">require</span> <span class="Statement">:http</span><span class="fennelRainbow_p1">)</span><span class="fennelRainbow_p0">)</span>
+
+<span class="fennelRainbow_p0">(</span><span class="Special">fn</span> <span class="Identifier">handler</span> <span class="fennelRainbow_p1">[</span><span class="Identifier">req</span> <span class="Identifier">res</span><span class="fennelRainbow_p1">]</span>
+  <span class="fennelRainbow_p1">(</span><span class="Special">let</span> <span class="fennelRainbow_p2">[</span><span class="Identifier">body</span> <span class="Constant">&quot;</span><span class="Constant">Hello world</span>\n<span class="Constant">&quot;</span><span class="fennelRainbow_p2">]</span>
+    <span class="fennelRainbow_p2">(</span><span class="Special">:</span> <span class="Identifier">res</span> <span class="Statement">:setHeader</span> <span class="Constant">&quot;</span><span class="Constant">Content-Type</span><span class="Constant">&quot;</span> <span class="Constant">&quot;</span><span class="Constant">text/plain</span><span class="Constant">&quot;</span><span class="fennelRainbow_p2">)</span>
+    <span class="fennelRainbow_p2">(</span><span class="Special">:</span> <span class="Identifier">res</span> <span class="Statement">:setHeader</span> <span class="Constant">&quot;</span><span class="Constant">Content-Length</span><span class="Constant">&quot;</span> <span class="fennelRainbow_p3">(</span><span class="Identifier"># body</span><span class="fennelRainbow_p3">)</span><span class="fennelRainbow_p2">)</span>
+    <span class="fennelRainbow_p2">(</span><span class="Special">:</span> <span class="Identifier">res</span> <span class="Statement">:finish</span> <span class="Identifier">body</span><span class="fennelRainbow_p2">)</span><span class="fennelRainbow_p1">)</span><span class="fennelRainbow_p0">)</span>
+
+<span class="fennelRainbow_p0">(</span><span class="Special">:</span> <span class="fennelRainbow_p1">(</span><span class="Identifier">http.createServer</span> <span class="Identifier">handler</span><span class="fennelRainbow_p1">)</span> <span class="Statement">:listen</span> <span class="Constant">1337</span> <span class="Constant">&quot;</span><span class="Constant">127.0.0.1</span><span class="Constant">&quot;</span><span class="fennelRainbow_p0">)</span>
+
+<span class="fennelRainbow_p0">(</span><span class="Special">print</span> <span class="Constant">&quot;</span><span class="Constant">Server running at <a href="http://127.0.0.1:1337/">http://127.0.0.1:1337/</a></span><span class="Constant">&quot;</span><span class="fennelRainbow_p0">)</span>
+</pre>
+---
+
+class: center middle
+
+# But...
+
+![bigprob](assets/bigproblem.gif)
 
 ---
 
+class: center middle
+
 # Can it run on an ESP32?
-* 512 kB RAM
-* 4M flash
-* Doesn't run Linux
-* Bluetooth + WiFi peripherals
 
 .image-50[![esp32](assets/esp32.jpg)]
 
 ---
 
+class: center middle
+
 # Solution: NodeMCU + Fennel
-* NodeMCU is Lua for embedded devices
+
+![nodemcu](assets/nodemcu.png)
+
+* NodeMCU is Lua for embedded devices, including the ESP32
 * NodeMCU runs Lua, so it runs Fennel
 * Networking stack provided
 
 ---
 
-# NodeMCU Limitation: no (useable) http
-* http module says for client use only
-* "Quote about not using nodeMCU for http server here."
-* I do what I want.
+class: middle
+
+# Some problems
+
+In the NodeMCU documenation, `http` module says "for client use only".
+
+Also,
+
+> If you are trying to implement a user-interface or HTTP webserver in your ESP8266
+> then you are really abusing its intended purpose.
+>
+> &mdash; Terry Ellison, nodemcu-firmware maintainer
 
 ---
+
+class: middle
 
 # So I wrote my own HTTP parser
 * HTTP is pretty simple
@@ -78,17 +123,31 @@ I wanted to make something new for Fennel Conf.
 
 ---
 
+class: middle
+
 # Design
-* Provides a way to listen on socket, run callback when packets arrive
+* The `net` module provides a way to listen on a socket and run a callback when packets arrive.
 * packets callback &rarr; packet iterator
 * packet iterator &rarr; line iterator
 * line iterator &rarr; HTTP parser
 
 ---
 
-# Implementation: The packet callback (`coroutine.yield`)
-* Use coroutine.yield
-* !!Show Code!!
+class: middle
+
+# Callbacks to Coroutines
+
+<pre id='vimCodeElement'>
+        <span class="Identifier">on-conn</span> <span class="fennelRainbow_p3">(</span><span class="Special">fn</span> <span class="fennelRainbow_p0">[</span><span class="Identifier">conn</span><span class="fennelRainbow_p0">]</span>
+                  <span class="fennelRainbow_p0">(</span><span class="Special">let</span> <span class="fennelRainbow_p1">[</span><span class="Identifier">coro</span> <span class="fennelRainbow_p2">(</span><span class="Identifier">create</span> <span class="Identifier">coro-body</span><span class="fennelRainbow_p2">)</span>
+                        <span class="Identifier">close</span> <span class="fennelRainbow_p2">(</span><span class="Special">fn</span> <span class="fennelRainbow_p3">[]</span> <span class="fennelRainbow_p3">(</span><span class="Special">:</span> <span class="Identifier">conn</span> <span class="Statement">:close</span><span class="fennelRainbow_p3">)</span><span class="fennelRainbow_p2">)</span>
+                        <span class="Identifier">recv</span> <span class="fennelRainbow_p2">(</span><span class="Special">fn</span> <span class="fennelRainbow_p3">[</span><span class="Identifier">_</span> <span class="Identifier">data</span><span class="fennelRainbow_p3">]</span> <span class="fennelRainbow_p3">(</span><span class="Identifier">resume</span> <span class="Identifier">coro</span> <span class="Identifier">data</span><span class="fennelRainbow_p3">)</span><span class="fennelRainbow_p2">)</span><span class="fennelRainbow_p1">]</span>
+                    <span class="fennelRainbow_p1">(</span><span class="Identifier">resume</span> <span class="Identifier">coro</span> <span class="Identifier">conn</span><span class="fennelRainbow_p1">)</span>
+                    <span class="fennelRainbow_p1">(</span><span class="Special">:</span> <span class="Identifier">conn</span> <span class="Statement">:on</span> <span class="Statement">:sent</span> <span class="Identifier">close</span><span class="fennelRainbow_p1">)</span>
+                    <span class="fennelRainbow_p1">(</span><span class="Special">:</span> <span class="Identifier">conn</span> <span class="Statement">:on</span> <span class="Statement">:receive</span> <span class="Identifier">recv</span><span class="fennelRainbow_p1">)</span><span class="fennelRainbow_p0">)</span><span class="fennelRainbow_p3">)</span>
+</pre>
+
+Our packet iterator is just `coroutine.yield`
 
 ---
 
@@ -116,79 +175,42 @@ I wanted to make something new for Fennel Conf.
 
 ---
 
-# Line iterator -> HTTP parser
+# Line iterator &rarr; HTTP parser
 * We can now iterate over lines and be really stupid about parsing HTTP
 * Code looks like blocking code, but isn't
 * Use Lua Patterns for parsing HTTP syntax line by line.
-* CODE
-
----
-
-# Ring-like interface
-* Our http parser creates a `req` table that we pass to a handler.
-* Handler needs to return a response.
-* CODE
-
----
-
-# Response renderer
-* Covert response object to HTTP response
-* send the response over HTTP
-* CODE
 
 ---
 
 # That's pretty much it
-* We have an HTTP server built on a raw tcp/ip stack
+
+.center.image-50[![arrows](assets/arrows.png)]
+
+* approx. 100 lines of code
+* The rest of the code is pretty straight forward
 * We could swap out the original packet iterator for whatever we wanted (HTTP from pipe, netcat).
 * Code is small enough to work on the ESP32/NodeMCU easily.
 
 ---
 
-# Making it better
-* Some duplication, lua style things
-* Duh, write some macros (I want a `loop` macro)
-
----
-
-# So why make a tiny HTTP server of software?
-* Prototyping
-* Illustration
-* Learning
-* Starting point for future projects.
-* Fun!
-* It's probably good enough, and all code is a liability
-
----
-
 # "smol software"
-* Distill something to it's roots
-* You won't get everything right in the first take, maybe not in the first year either.
-* When performance is not paramount, code can become A LOT shorter
+* Reduce code to the core ideas and wrap in a cute package
 * Other people can play with the code
-* Simple > correct
-* You spend more time thinking, less time writing code
+* Simple &gt; correct
 
 ---
 
 # These are not new ideas
 * Lisp, Smalltalk, etc.
 * Suckless software
-* Clojure (simple made easy)
+* Clojure (Rich Hickey and "simple made easy")
 
 ---
 
 # Simple software can be reused in unexpected ways
-* Modify server to pipe from netcat
-* Reuse line-iter function
-* I use this technique in the Fennel parser
-
----
-
-# For software toys, sometimes the idea is more important than the code
-* npm micro modules -> github gists
-* A lot of the code in Fennel has been rewritten (more than once!)
-* It would have been a lot harder to rewrite if the design was less flexible
+* Modify server to read from a fifo
+* Reuse `line-iter` function
+* I used this technique in the Fennel parser
 
 ---
 

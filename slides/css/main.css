@@ -1,5 +1,5 @@
 body {
-    font-family: "Fira Sans","Helvetica Neue",Helvetica,sans-serif;
+    font-family: 'PT Serif', serif;
     color: #444;
     font-size: 24px;
 }
@@ -9,13 +9,17 @@ body {
 }
 
 .remark-container {
-    background: black;
+    background: #BBB;
 }
 
 h1, h2, h3 {
-    font-family: "Fira Sans","Helvetica Neue",Helvetica,sans-serif;
+    font-family: "Fira Sans",Helvetica,sans-serif;
     color: #222;
     font-size: 1rem;
+}
+
+blockquote {
+    color: #AAA;
 }
 
 code {
@@ -24,6 +28,14 @@ code {
 
 .image-50 img {
   width: 50%;
+}
+
+.image-256 img {
+  width: 256px;
+}
+
+.image-64 img {
+  width: 128px;
 }
 
 /* Syntax highlighting */
