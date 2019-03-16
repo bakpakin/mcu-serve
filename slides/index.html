@@ -1,104 +1,118 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Title</title>
+    <title>Making an HTTP Server - Fennel Conf 2019</title>
     <meta charset="utf-8">
-    <style>
-      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
-      @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
-      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
-
-      body { font-family: 'Droid Serif'; }
-      h1, h2, h3 {
-        font-family: 'Yanone Kaffeesatz';
-        font-weight: normal;
-      }
-      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
-    </style>
+    <link rel="stylesheet" href="css/main.css" type="text/css" charset="utf-8">
   </head>
   <body>
     <textarea id="source">
 
 class: center, middle
 
-# Making and HTTP Server in Fennel! (and other thoughts about Fennel)
-* Fennel Conf 2019
+# Making an HTTP Server in Fennel!
+
+## Fennel Conf 2019
 
 ---
 
-# Introduction
-* me.jpg
-* I'm Calvin (bakpakin)
-* I like programming, especially languages and compilers.
-* Computer Engineering Student at Boston University
-* I wrote the original version of Fennel (called fnl)
-* About 1000 lines of lua in 2016, has grown since
+class: center, middle
+
+# Me
+
+I'm Calvin Rose (calsrose@bu.edu). I'm a Computer Engineering Student at 
+Boston University, class of 2019, with an interest in
+PL design and compilers.
+
+I wrote the original version of Fennel with about 1000 lines of Lua in 2016, and it has grown since.
 
 ---
 
 # My Fennel Experience
-* I've spent a lot of time hacking on the compiler, a bit less time actually using it
-* So I thought I would start "learning" Fennel for this talk.
+I've spent a lot of time hacking on the compiler, and less time using the language.
+I wanted to make something new for Fennel Conf.
 
 ---
 
-# So lets make an HTTP server
+# Prior Art
 * Fennel runs on Lua, Lua has lots of HTTP server libraries
-* OpenResty, Luvit, Xavante, moonmint, Lapis, etc.
+* OpenResty, Luvit, Xavante, Lwan, moonmint, Lapis, etc.
 * We could simply use the Lua bindings directly
 
 ---
 
-# ... But will they run on an ESP32?
-* nice-pic.png
-* 512 kB RAM
-* 4M flash
-* Doesn't run linux, can use FreeRTOS
-* Bluetooth + Wifi peripherals
-* ~$10 for a dev board
-* System specific APIs for networking
+# Fennel + Luvit example
+
+* From the Luvit.io homepage
 
 ---
 
-# Use NodeMCU + Fennel for the board
+# Can it run on an ESP32?
+* 512 kB RAM
+* 4M flash
+* Doesn't run Linux
+* Bluetooth + WiFi peripherals
+
+.image-50[![esp32](assets/esp32.jpg)]
+
+---
+
+# Solution: NodeMCU + Fennel
+* NodeMCU is Lua for embedded devices
 * NodeMCU runs Lua, so it runs Fennel
-* Use the Espressif libraries for C bindings
 * Networking stack provided
 
 ---
 
-# But the http package says (for client use only)
-* nodemcu-doc-screenshot.png :(
+# NodeMCU Limitation: no (useable) http
+* http module says for client use only
 * "Quote about not using nodeMCU for http server here."
 * I do what I want.
 
 ---
 
-# So I wrote my own HTTP parser. HTTP is pretty simple
-* Line/text based protocol
+# So I wrote my own HTTP parser
+* HTTP is pretty simple
+* Line based ASCII protocol
 * We don't need to handle the whole protocol - only what our server will handle
 
 ---
 
-# NodeMCU net module
+# Design
 * Provides a way to listen on socket, run callback when packets arrive
-* idea.png
-* packets callback -> packet iterator
-* packet iterator -> line iterator
-* line-itertor -> http-parser
+* packets callback &rarr; packet iterator
+* packet iterator &rarr; line iterator
+* line iterator &rarr; HTTP parser
 
 ---
 
-# The packet callback -> packet iterator
+# Implementation: The packet callback (`coroutine.yield`)
 * Use coroutine.yield
 * !!Show Code!!
 
 ---
 
-# Packet iterator -> Line iterator
-* In Clojure, we have lazy sequences, higher order functions like map, and transducers.
-* In Fennel/Lua, we can use iterators. Our combinators can take in an iterator and return a new iterator
-* CODE
+# Implementation: Packet iterator &rarr; Line iterator
+* In Clojure, we have lazy sequences and combinators that operate on them
+* In Fennel/Lua, we can use iterators _and combinators that operate on iterators_.
+* Iterators are much like lazy sequences, but can only be consumed ONCE (Linear Types?)
+
+---
+
+# Implementation: Line iterator combinator
+
+<pre id='vimCodeElement'>
+<span class="Comment">; Take an iterator over packets and return an iterator over lines</span>
+<span class="fennelRainbow_p0">(</span><span class="Special">fn</span> <span class="Identifier">line-iter</span> <span class="fennelRainbow_p1">[</span><span class="Identifier">packets</span><span class="fennelRainbow_p1">]</span>
+  <span class="fennelRainbow_p1">(</span><span class="Special">var</span> <span class="Identifier">buf</span> <span class="Constant">&quot;&quot;</span><span class="fennelRainbow_p1">)</span>
+  <span class="fennelRainbow_p1">(</span><span class="Special">fn</span> <span class="Identifier">recur</span> <span class="fennelRainbow_p2">[]</span>
+    <span class="fennelRainbow_p2">(</span><span class="Special">local</span> <span class="fennelRainbow_p3">(</span><span class="Identifier">residual</span> <span class="Identifier">rest</span><span class="fennelRainbow_p3">)</span> <span class="fennelRainbow_p3">(</span><span class="Special">:</span> <span class="Identifier">buf</span> <span class="Statement">:match</span> <span class="Constant">&quot;</span><span class="Constant">^([^</span>\r\n<span class="Constant">]*)</span>\r<span class="Constant">?</span>\n<span class="Constant">(.*)$</span><span class="Constant">&quot;</span><span class="fennelRainbow_p3">)</span><span class="fennelRainbow_p2">)</span>
+    <span class="fennelRainbow_p2">(</span><span class="Special">if</span> <span class="Identifier">residual</span>
+      <span class="fennelRainbow_p3">(</span><span class="Special">do</span> <span class="fennelRainbow_p0">(</span><span class="Special">set</span> <span class="Identifier">buf</span> <span class="Identifier">rest</span><span class="fennelRainbow_p0">)</span> <span class="Identifier">residual</span><span class="fennelRainbow_p3">)</span>
+      <span class="fennelRainbow_p3">(</span><span class="Special">let</span> <span class="fennelRainbow_p0">[</span><span class="Identifier">packet</span> <span class="fennelRainbow_p1">(</span><span class="Identifier">packets</span><span class="fennelRainbow_p1">)</span><span class="fennelRainbow_p0">]</span>
+        <span class="fennelRainbow_p0">(</span><span class="Special">set</span> <span class="Identifier">buf</span> <span class="fennelRainbow_p1">(</span><span class="Identifier">..</span> <span class="Identifier">buf</span> <span class="Identifier">packet</span><span class="fennelRainbow_p1">)</span><span class="fennelRainbow_p0">)</span>
+        <span class="fennelRainbow_p0">(</span><span class="Identifier">recur</span><span class="fennelRainbow_p0">)</span><span class="fennelRainbow_p3">)</span><span class="fennelRainbow_p2">)</span><span class="fennelRainbow_p1">)</span><span class="fennelRainbow_p0">)</span>
+</pre>
 
 ---
 
@@ -178,28 +192,28 @@ class: center, middle
 
 ---
 
-# Is Fennel still that small?
-* Not totally, but we have some benefits of "smol software"
-* One file, works with lots of different Lua distributions
-* No build step for the compiler
+# How smol is Fennel?
+* One file, no build step, no runtime, works with most common Lua implementations.
+* You can read it in an hour (a few hours?)
+* But its a big file.
 * It's still fun to hack on!
 
 ---
 
 # How can the Fennel compiler be improved?
-* Distill some of the ideas in the compiler
 * Simplify, simplify, simplify!
 * Real usage and feedback
-* Complexity = LOC * (Difficulty to use)
+* Document the internals! We need some internal design docs to compensate for no type system.
 
 ---
+
+class: center, middle
 
 # Thanks!
 Questions?
 
     </textarea>
-    <script src="https://remarkjs.com/downloads/remark-latest.min.js">
-    </script>
+    <script src="js/remark.min.js" type="text/javascript"></script>
     <script>
       var slideshow = remark.create();
     </script>

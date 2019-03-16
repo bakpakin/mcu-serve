@@ -2,7 +2,7 @@
 
 A very bareones HTTP server on the ESP32 with NodeMCU and [Fennel](https://fennel-lang.org)
 Can be used as a starting point for building a standalone, IoT
-web server with Fennel.
+web server with Fennel. Made for [FennelConf 2019](https://conf.fennel-lang.org/2019)
 
 ## Tools
 

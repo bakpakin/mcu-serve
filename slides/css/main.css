@@ -1,0 +1,45 @@
+body {
+    font-family: "Fira Sans","Helvetica Neue",Helvetica,sans-serif;
+    color: #444;
+    font-size: 24px;
+}
+
+.remark-slide {
+    background: red;
+}
+
+.remark-container {
+    background: black;
+}
+
+h1, h2, h3 {
+    font-family: "Fira Sans","Helvetica Neue",Helvetica,sans-serif;
+    color: #222;
+    font-size: 1rem;
+}
+
+code {
+    font-family: Inconsolata,monospace;
+}
+
+.image-50 img {
+  width: 50%;
+}
+
+/* Syntax highlighting */
+pre {
+    background: #222;
+    font-size: 0.8em;
+    padding: 28px;
+    border-radius: 5px;
+    color: white;
+}
+.fennelRainbow_p1 { color: #ffff00; font-weight: bold; }
+.fennelRainbow_p0 { color: #8080ff; font-weight: bold; }
+.fennelRainbow_p2 { color: #00ffff; font-weight: bold; }
+.fennelRainbow_p3 { color: #ff40ff; font-weight: bold; }
+.Comment { color: #00ffff; font-weight: bold; }
+.Constant { color: #ff40ff; font-weight: bold; }
+.Special { color: #ff6060; font-weight: bold; }
+.Identifier { color: #00ffff; font-weight: bold; }
+.Statement { color: #ffff00; font-weight: bold; }
